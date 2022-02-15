@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import multiprocessing
-from multiprocessing.connection import wait
 import time
-import concurrent
-from concurrent.futures.process import ProcessPoolExecutor
 import random
 import datetime
 import os
