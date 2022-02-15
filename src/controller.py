@@ -5,6 +5,7 @@ import multiprocessing
 import time
 import concurrent
 from concurrent.futures.process import ProcessPoolExecutor
+from concurrent.futures.thread import ThreadPoolExecutor
 import random
 import datetime
 import os
@@ -12,6 +13,9 @@ import logging
 import logger
 import yaml
 from manager import APIStressManager
+
+def unwrap_manager_run(obj, *args, **kwargs):
+    APIStressManager.start_test(obj)
 
 class APIStressController:
     LOG_DIR = "./log"
@@ -38,70 +42,74 @@ class APIStressController:
         # self.max_response_time = -1
 
     def start_test(self):
+        path = "controller.log"
+        _logger = logger.create_basic_logger(path, path, stderr_level=logging.INFO)
+
+        _logger.info("controller start")
         apis = self.config["apis"]
         num_workers = len(apis)
 
-        os.makedirs(APIStressController.LOG_DIR, exist_ok=True)
-        os.makedirs(APIStressController.STATS_DIR, exist_ok=True)
+        if not os.path.exists(APIStressController.LOG_DIR):
+            os.makedirs(APIStressController.LOG_DIR)
+        if not os.path.exists(APIStressController.STATS_DIR):
+            os.makedirs(APIStressController.STATS_DIR)
+
+        max_test_time = 0
 
         for api in apis:
             manager = APIStressManager(api)
             self.api_managers.append(manager)
+            # 全てのAPIのテスト時間の中で最も長いものを探す
+            max_test_time = max(max_test_time, api["time"])
         
-        for manager in self.api_managers:
-            manager.start_test()
+        # for manager in self.api_managers:
+        #     manager.start_test()
 
         # with ProcessPoolExecutor(max_workers=num_workers) as executor:
-        #     # Future作成
-        #     futures = []
-        #     now = datetime.datetime.now()
-        #     print("s " + str(now))
-        #     for index in range(num_workers):
-        #         worker = APIStressWorker(self.name, self.result_dict, self.lock)
-        #         future = executor.submit(worker.run)
-        #         # future = executor.submit(test, index)
-        #         futures.append(future)
-        #         # print("f", index)
-        #     # API処理の途中経過を報告する
-        #     now = datetime.datetime.now()
-        #     print("w " + str(now))
-        #     reporter = APIStressReporter(self.name, self.result_dict, self.lock)
-        #     future = executor.submit(reporter.run)
-        #     futures.append(future)
-        #     now = datetime.datetime.now()
-        #     print("a " + str(now))
-        #     # 実行
-        #     try:
-        #         timeout = 20
-        #         for future in concurrent.futures.as_completed(futures, timeout):
-        #             # print("g", future)
-        #             result = future.result()
-        #             # print(result)
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            # Future作成
+            futures = []
+            for manager in self.api_managers:
+                future = executor.submit(unwrap_manager_run, manager)
+                futures.append(future)
 
-        #     except concurrent.futures.TimeoutError as _:
-        #         # 現在のfutureの状態を表示
-        #         print("Timeout -----")
-        #         for future in futures:
-        #             print(id(future), f"running: {future.running()}", f"cancelled: {future.cancelled()}")
+            # 実行
+            try:
+                timeout = max_test_time + 5
+                for future in concurrent.futures.as_completed(futures, timeout):
+                    # print("g", future)
+                    result = future.result()
+                    # print(result)
 
-        #         # Futureをキャンセル
-        #         for future in futures:
-        #             if not future.running():
-        #                 future.cancel()
+            except concurrent.futures.TimeoutError as _:
+                # 現在のfutureの状態を表示
+                _logger.warning("Timeout")
+                for future in futures:
+                    _logger.warning("{} running: {} cancelled: {}".format(
+                        id(future), future.running(), future.cancelled()))
 
-        #         # プロセスをKill
-        #         # !! ここを追加 !!
-        #         for process in executor._processes.values():
-        #             process.kill()
+                # Futureをキャンセル
+                for future in futures:
+                    if not future.running():
+                        future.cancel()
 
-        # # 実行後のfutureの状態を確認
-        # print("Executor Shutdown -----")
-        # for future in futures:
-        #     print(id(future), f"running: {future.running()}", f"cancelled: {future.cancelled()}")
+                # プロセスをKill
+                # _logger.warning("kill")
+                # for process in executor._processes:
+                #     # _logger.warning(str(dir(process)))
+                #     _logger.warning(str(process.pid))
+                #     process.terminate()
+                # for process in executor._processes.values():
+                #     process.kill()
+            _logger.warning("end of with")
 
-        # now = datetime.datetime.now()
-        # print("e " + str(now))
-        # print(self.result_dict)
+        # 実行後のfutureの状態を確認
+        _logger.info("Executor Shutdown")
+        for future in futures:
+            _logger.warning("{} running: {} cancelled: {}".format(
+                id(future), future.running(), future.cancelled()))
+
+        _logger.info("controller stop")
 
 if __name__ == '__main__':
     config = None

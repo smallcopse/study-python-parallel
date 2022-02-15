@@ -13,6 +13,12 @@ import logger
 from worker import APIStressWorker
 from reporter import APIStressReporter
 
+def unwrap_worker_run(obj, *args, **kwargs):
+    APIStressWorker.run(obj)
+
+def unwrap_reporter_run(obj, *args, **kwargs):
+    APIStressReporter.run(obj)
+
 class APIStressManager:
     LOG_DIR = "./log"
 
@@ -50,13 +56,14 @@ class APIStressManager:
             futures = []
             for index in range(num_workers):
                 worker = APIStressWorker(self.config, self.result_dict, self.lock, index)
-                future = executor.submit(worker.run)
-                # future = executor.submit(test, index)
+                # future = executor.submit(worker.run)
+                future = executor.submit(unwrap_worker_run, worker)
                 futures.append(future)
 
             # API処理の途中経過を報告する
             reporter = APIStressReporter(self.config, self.result_dict, self.lock)
-            future = executor.submit(reporter.run)
+            # future = executor.submit(reporter.run)
+            future = executor.submit(unwrap_reporter_run, reporter)
             futures.append(future)
             # 実行
             try:
@@ -79,9 +86,14 @@ class APIStressManager:
                         future.cancel()
 
                 # プロセスをKill
-                # !! ここを追加 !!
-                for process in executor._processes.values():
-                    process.kill()
+                # _logger.warning("kill")
+                # for process in executor._processes:
+                #     # _logger.warning(str(dir(process)))
+                #     _logger.warning(str(process.pid))
+                #     process.terminate()
+                # for process in executor._processes.values():
+                #     process.kill()
+            _logger.warning("end of with")
 
         # 実行後のfutureの状態を確認
         _logger.info("Executor Shutdown")

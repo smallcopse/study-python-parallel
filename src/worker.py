@@ -28,13 +28,6 @@ class APIStressWorker:
         # self.hoge = hoge
 
     def reset(self):
-        # self.result_dict[self.name]["num_executed"] = 0
-        # self.result_dict[self.name]["num_succeed"] = 0
-        # self.result_dict[self.name]["num_error"] = 0
-        # self.result_dict[self.name]["num_connection_error"] = 0
-        # self.result_dict[self.name]["sum_response_time"] = 0
-        # self.result_dict[self.name]["min_response_time"] = 1e10
-        # self.result_dict[self.name]["max_response_time"] = -1
         self.result_dict["num_executed"] = 0
         self.result_dict["num_succeed"] = 0
         self.result_dict["num_error"] = 0
