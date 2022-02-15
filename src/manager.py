@@ -38,12 +38,12 @@ class APIStressManager:
         # self.max_response_time = -1
 
     def start_test(self):
-        path = f"{self.name}-manager.log"
+        path = "{}-manager.log".format(self.name)
         _logger = logger.create_basic_logger(path, path, stderr_level=logging.INFO)
         num_workers = self.config["workers"]
         test_time = self.config["time"] / 1000.0
 
-        _logger.info(f"start manager {self.name} (workers={num_workers})")
+        _logger.info("start manager {} (workers={})".format(self.name, num_workers))
 
         with ProcessPoolExecutor(max_workers=num_workers+1) as executor:
             # Future作成
@@ -53,7 +53,7 @@ class APIStressManager:
                 future = executor.submit(worker.run)
                 # future = executor.submit(test, index)
                 futures.append(future)
-                # print("f", index)
+
             # API処理の途中経過を報告する
             reporter = APIStressReporter(self.config, self.result_dict, self.lock)
             future = executor.submit(reporter.run)
@@ -70,7 +70,8 @@ class APIStressManager:
                 # 現在のfutureの状態を表示
                 _logger.warning("Timeout")
                 for future in futures:
-                    _logger.warning(f"{id(future)} running: {future.running()} cancelled: {future.cancelled()}")
+                    _logger.warning("{} running: {} cancelled: {}".format(
+                        id(future), future.running(), future.cancelled()))
 
                 # Futureをキャンセル
                 for future in futures:
@@ -85,9 +86,10 @@ class APIStressManager:
         # 実行後のfutureの状態を確認
         _logger.info("Executor Shutdown")
         for future in futures:
-            _logger.info(f"{id(future)} running: {future.running()} cancelled: {future.cancelled()}")
+            _logger.warning("{} running: {} cancelled: {}".format(
+                id(future), future.running(), future.cancelled()))
 
-        _logger.info(f"stop manager {self.name} (workers={num_workers})")
+        _logger.info("stop manager {}".format(self.name))
 
 if __name__ == '__main__':
     manager = APIStressManager("test")

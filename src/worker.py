@@ -67,7 +67,8 @@ class APIStressWorker:
             pass
 
     def run(self):
-        log_path = f"{APIStressWorker.LOG_DIR}/{self.name}-worker-{self.worker_id}.log"
+        log_path = "{}/{}-worker-{}.log".format(
+            APIStressWorker.LOG_DIR, self.name, self.worker_id)
         _logger = logger.create_basic_logger(log_path, log_path, stderr_level=logging.WARNING)
         try:
             _logger.info("worker start")
@@ -77,7 +78,7 @@ class APIStressWorker:
             while True:
                 begin = time.time()
                 x = random.randint(0, 200)
-                _logger.debug(f"x={x}")
+                _logger.debug("x={}".format(x))
                 self.add_report(APIStressWorker.SUCCESS, x)
 
                 now = time.time()

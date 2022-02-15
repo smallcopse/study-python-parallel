@@ -28,7 +28,7 @@ class APIStressReporter:
         self.result_dict = result_dict
         # self.lock = self.manager.Lock()
         self.lock = lock
-        self.stats_file = f"{self.name}.tsv"
+        self.stats_file = "{}.tsv".format(self.name)
         # self.reset()
         # with open("./d.txt" , 'a') as f:
         #     now = datetime.datetime.now()
@@ -36,11 +36,11 @@ class APIStressReporter:
         # self.result_dict["cwd"] = os.getcwd()
     
     def run(self):
-        log_path = f"{APIStressReporter.LOG_DIR}/{self.name}-reporter.log"
+        log_path = "{}/{}-reporter.log".format(APIStressReporter.LOG_DIR, self.name)
         _logger = logger.create_basic_logger(log_path, log_path, stderr_level=logging.WARNING)
 
         try:
-            stats_path = f"{APIStressReporter.STATS_DIR}/{self.name}.tsv"
+            stats_path = "{}/{}.tsv".format(APIStressReporter.STATS_DIR, self.name)
             interval = self.config["report_update_interval"]
             test_time = self.config["time"]
             start = time.time()
@@ -54,8 +54,8 @@ class APIStressReporter:
                 while True:
                     now = time.time()
                     wait_time = next_time_to_report - now
-                    # _logger.info(f"{begin} {before} {wait_time}")
-                    _logger.info(f"{now} {next_time_to_report} {wait_time}")
+                    # _logger.info("{begin} {before} {wait_time}")
+                    # _logger.info("{now} {next_time_to_report} {wait_time}")
 
                     if wait_time > 0:
                         time.sleep(wait_time)
