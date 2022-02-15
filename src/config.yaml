@@ -1,0 +1,15 @@
+
+apis:
+  - name: test1
+    url: http://localhost:8000/
+    workers: 3
+    term: 1000
+    report_update_interval: 1
+    time: 10000
+
+  - name: test2
+    url: http://localhost:8000/
+    workers: 2
+    term: 1000
+    report_update_interval: 30
+    time: 10000

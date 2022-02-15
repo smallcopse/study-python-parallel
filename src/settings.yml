@@ -1,0 +1,3 @@
+apis:
+  - name: test-api
+    path: /

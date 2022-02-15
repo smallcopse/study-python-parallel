@@ -1,0 +1,8 @@
+date	num_executed	num_succeed	num_error	num_connection_error	sum_response_time	min_response_time	max_response_time
+2022-02-15 23:04:35.371134	10	10	0	0	1037	43	198
+2022-02-15 23:04:40.370284	20	20	0	0	2206	43	200
+date	num_executed	num_succeed	num_error	num_connection_error	sum_response_time	min_response_time	max_response_time
+2022-02-15 23:06:39.213481	20	20	0	0	2346	23	199
+date	num_executed	num_succeed	num_error	num_connection_error	sum_response_time	min_response_time	max_response_time
+2022-02-15 23:08:22.126274	20	20	0	0	2364	0	197
+date	num_executed	num_succeed	num_error	num_connection_error	sum_response_time	min_response_time	max_response_time
